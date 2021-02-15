@@ -1,6 +1,7 @@
 import subprocess
 from datetime import datetime
 import os
+import re
 
 
 #import local libraries
@@ -137,7 +138,7 @@ def extractimage(config, VideoPath):
     outimage = '{Stn}_{DS}T{TS}Z.jpg'.format(
         Stn = videoname.split("_")[0],
         DS = videoname.split("_")[1],
-        TS = videoname.split("_")[2])
+        TS = re.split('\.|_',videoname)[2])
 
     outimagepath = os.path.join(ProcessedImagePath, outimage)
 

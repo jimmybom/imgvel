@@ -39,8 +39,13 @@ if __name__ == "__main__":
     
     
     
-    #run functions
+    #read config file
     c = POEcommands.importconfig('StationConfig.ini')
+    CameraIP = c[CamString]['IP']
+    CameraUser = c[CamString]['User']
+    CameraPwd = c[CamString]['Pwd']
+    
+    #run functions
     POEcommands.TurnPOEon(c)
     POEcommands.WarmupPOE(c)
     
@@ -57,7 +62,21 @@ if __name__ == "__main__":
         Log.printandlog("Waiting {0} seconds for Camera to record to SD card and establish FTP connection".format(timepause))
         time.sleep(timepause) #camera must be on for at least 30 seconds for ftp connection to be established
         
-        AXIS.CopySDCard(config = c, Cam = Cam)
+        
+        #initialize camera connection
+        CamConnect = AXIS.CAM(CameraIP, CameraUser, CameraPwd)
+        #get the list of videos on the camera sd card
+        vidlist = CamConnect.getvideolist()
+
+        for video in vidlist:
+            #download the video and record the storage path
+            PiVideoPath = CamConnect.downloadvideo(video,c)
+            #extract single image from downloaded video
+            FFMPEG.extractimage(c, PiVideoPath)
+            #delete video from AXIS SD card
+            CamConnect.deletevideofromSDcard(video)
+            
+        
         POEcommands.TurnPOEoff(c)
         Log.printandlog("Axis capture and process ran successfully")
         
